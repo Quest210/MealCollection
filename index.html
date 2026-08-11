@@ -4,36 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>用餐登记系统（云端同步）</title>
-    <!-- 引入 Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- 引入 SheetJS 用于导出 Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* ===== CSS Variables ===== */
         :root {
-            --primary: #4A6CF7;
-            --primary-dark: #3A56D4;
-            --primary-light: #E8EDFD;
-            --success: #22C55E;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --gray-50: #F9FAFB;
-            --gray-100: #F3F4F6;
-            --gray-200: #E5E7EB;
-            --gray-300: #D1D5DB;
-            --gray-400: #9CA3AF;
-            --gray-500: #6B7280;
-            --gray-600: #4B5563;
-            --gray-700: #374151;
-            --gray-800: #1F2937;
+            --primary: #4A6CF7; --primary-dark: #3A56D4; --primary-light: #E8EDFD;
+            --success: #22C55E; --danger: #EF4444; --warning: #F59E0B;
+            --gray-50: #F9FAFB; --gray-100: #F3F4F6; --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB; --gray-400: #9CA3AF; --gray-500: #6B7280;
+            --gray-600: #4B5563; --gray-700: #374151; --gray-800: #1F2937;
             --gray-900: #111827;
-            --radius: 12px;
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius: 12px; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
             --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 16px; }
         #app { width: 100%; max-width: 880px; margin: 0 auto; position: relative; }
@@ -45,12 +30,10 @@
         .page { display: none; animation: fadeSlideIn 0.35s ease; }
         .page.active { display: block; }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
         #loginPage .login-logo { text-align: center; padding: 30px 0 20px; }
         #loginPage .login-logo .icon { font-size: 56px; display: block; margin-bottom: 8px; }
         #loginPage .login-logo h1 { font-size: 28px; font-weight: 800; color: var(--gray-900); letter-spacing: -0.5px; }
         #loginPage .login-logo p { color: var(--gray-500); font-size: 15px; margin-top: 4px; }
-
         .role-buttons { display: flex; gap: 12px; margin: 24px 0 8px; }
         .role-buttons .btn { flex: 1; padding: 18px 12px; font-size: 17px; font-weight: 600; border-radius: var(--radius); border: 2px solid var(--gray-200); background: #fff; cursor: pointer; transition: var(--transition); text-align: center; }
         .role-buttons .btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); }
@@ -58,17 +41,16 @@
         .role-buttons .btn .sub { font-size: 12px; font-weight: 400; color: var(--gray-400); display: block; margin-top: 4px; }
         .role-buttons .btn-admin { border-color: var(--gray-300); }
         .role-buttons .btn-admin:hover { border-color: var(--danger); background: #FEF2F2; }
-
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; font-size: 15px; font-weight: 500; border: none; border-radius: var(--radius); transition: var(--transition); text-decoration: none; color: #fff; background: var(--gray-400); min-height: 44px; cursor: pointer; }
         .btn:active { transform: scale(0.97); }
         .btn-primary { background: var(--primary); }
-        .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(74, 108, 247, 0.35); }
+        .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(74,108,247,0.35); }
         .btn-success { background: var(--success); }
-        .btn-success:hover { background: #16A34A; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35); }
+        .btn-success:hover { background: #16A34A; box-shadow: 0 4px 12px rgba(34,197,94,0.35); }
         .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: #DC2626; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35); }
+        .btn-danger:hover { background: #DC2626; box-shadow: 0 4px 12px rgba(239,68,68,0.35); }
         .btn-warning { background: var(--warning); }
-        .btn-warning:hover { background: #D97706; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35); }
+        .btn-warning:hover { background: #D97706; box-shadow: 0 4px 12px rgba(245,158,11,0.35); }
         .btn-outline { background: transparent; color: var(--gray-600); border: 1.5px solid var(--gray-300); }
         .btn-outline:hover { background: var(--gray-100); border-color: var(--gray-400); }
         .btn-sm { padding: 6px 14px; font-size: 13px; min-height: 34px; }
@@ -76,14 +58,12 @@
         .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-group .btn { flex: 1; min-width: 80px; }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
         .form-group { margin-bottom: 18px; }
         .form-label { display: block; font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
         .form-label .required { color: var(--danger); margin-left: 2px; }
         .form-control { width: 100%; padding: 11px 14px; font-size: 15px; border: 1.5px solid var(--gray-200); border-radius: var(--radius); background: #fff; transition: var(--transition); color: var(--gray-800); font-family: var(--font); -webkit-appearance: none; appearance: none; }
-        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.12); }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74,108,247,0.12); }
         .form-control::placeholder { color: var(--gray-400); }
-        select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .form-hint { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
         .form-check { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
@@ -91,8 +71,7 @@
         .form-check label { font-size: 15px; cursor: pointer; color: var(--gray-700); }
         .form-check .custom-input { display: inline-block; width: 120px; margin-left: 4px; }
         .form-check .custom-input input { width: 100%; padding: 6px 10px; font-size: 14px; border: 1.5px solid var(--gray-200); border-radius: 8px; transition: var(--transition); }
-        .form-check .custom-input input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1); }
-
+        .form-check .custom-input input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.1); }
         .table-wrap { overflow-x: auto; margin: 0 -4px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         table th { text-align: left; padding: 12px 8px; font-weight: 600; color: var(--gray-600); border-bottom: 2px solid var(--gray-200); white-space: nowrap; background: var(--gray-50); position: sticky; top: 0; z-index: 2; }
@@ -101,19 +80,19 @@
         table .actions { display: flex; gap: 4px; flex-wrap: wrap; }
         table .actions .btn { padding: 4px 10px; font-size: 12px; min-height: 28px; border-radius: 6px; }
         table td.remark-cell { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+        .tag-lunch { background: #FEF3C7; color: #92400E; }
+        .tag-dinner { background: #DBEAFE; color: #1E40AF; }
+        .tag-other { background: var(--gray-100); color: var(--gray-600); }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
         .empty-state .icon { font-size: 48px; display: block; margin-bottom: 12px; }
         .empty-state p { font-size: 15px; }
-
         .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: flex-end; }
         .filter-bar .filter-group { flex: 1; min-width: 120px; }
         .filter-bar .filter-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-500); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
         .filter-bar .filter-group input, .filter-bar .filter-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1.5px solid var(--gray-200); border-radius: 8px; background: #fff; transition: var(--transition); font-family: var(--font); }
-        .filter-bar .filter-group input:focus, .filter-bar .filter-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.1); }
+        .filter-bar .filter-group input:focus, .filter-bar .filter-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,108,247,0.1); }
         .filter-bar .filter-actions { display: flex; gap: 6px; align-items: center; }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 999; padding: 20px; animation: fadeIn 0.2s ease; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 999; padding: 20px; animation: fadeIn 0.2s ease; }
         .modal-overlay.open { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal { background: #fff; border-radius: var(--radius); padding: 28px 24px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
@@ -122,7 +101,6 @@
         .modal-header h3 { font-size: 20px; font-weight: 700; color: var(--gray-900); }
         .modal-close { width: 36px; height: 36px; border: none; background: var(--gray-100); border-radius: 50%; font-size: 20px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; color: var(--gray-500); }
         .modal-close:hover { background: var(--gray-200); color: var(--gray-700); }
-
         .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; max-width: 90%; }
         .toast { padding: 12px 24px; border-radius: var(--radius); background: var(--gray-900); color: #fff; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease; pointer-events: auto; display: flex; align-items: center; gap: 10px; max-width: 100%; }
         .toast-success { background: var(--success); }
@@ -130,19 +108,16 @@
         .toast-warning { background: var(--warning); }
         .toast-info { background: var(--primary); }
         @keyframes toastIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 16px; }
         .stats .stat-item { background: var(--gray-50); border-radius: var(--radius); padding: 12px 14px; text-align: center; }
         .stats .stat-item .num { font-size: 24px; font-weight: 700; color: var(--gray-900); }
         .stats .stat-item .label { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
-
         .user-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--gray-100); }
         .user-list-item:last-child { border-bottom: none; }
         .user-list-item .info { display: flex; flex-direction: column; }
         .user-list-item .info .name { font-weight: 600; color: var(--gray-800); }
         .user-list-item .info .dept { font-size: 13px; color: var(--gray-500); }
         .user-list-item .info .phone { font-size: 12px; color: var(--gray-400); }
-
         @media (max-width: 600px) {
             body { padding: 8px; }
             .card { padding: 16px 14px; border-radius: 10px; }
@@ -168,12 +143,10 @@
             table th, table td { padding: 4px 3px; font-size: 11px; }
             .btn-sm { padding: 4px 8px; font-size: 11px; min-height: 24px; }
         }
-
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 3px; }
         ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
-
         .text-muted { color: var(--gray-400); font-size: 13px; }
         .text-center { text-align: center; }
         .mt-8 { margin-top: 8px; }
@@ -184,47 +157,40 @@
         .flex-wrap { flex-wrap: wrap; }
         .record-count { font-size: 14px; color: var(--gray-500); }
         .tag { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: var(--gray-100); color: var(--gray-600); }
-        .tag-primary { background: var(--primary-light); color: var(--primary); }
-        .tag-success { background: #DCFCE7; color: #16A34A; }
-        .tag-warning { background: #FEF3C7; color: #D97706; }
         .password-input-group { display: flex; gap: 8px; margin-top: 12px; }
         .password-input-group input { flex: 1; padding: 11px 14px; font-size: 15px; border: 1.5px solid var(--gray-200); border-radius: var(--radius); font-family: var(--font); }
-        .password-input-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.12); }
+        .password-input-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74,108,247,0.12); }
         .password-input-group .btn { flex-shrink: 0; }
-
         .batch-area { margin-top: 16px; border-top: 1px solid var(--gray-200); padding-top: 16px; }
         .batch-area .batch-title { font-weight: 600; margin-bottom: 8px; font-size: 15px; color: var(--gray-700); }
         .batch-area textarea { width: 100%; padding: 10px 12px; font-size: 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius); font-family: var(--font); resize: vertical; min-height: 80px; transition: var(--transition); }
-        .batch-area textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74, 108, 247, 0.1); }
+        .batch-area textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74,108,247,0.1); }
         .batch-area .batch-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-
         .auto-export-status { font-size: 13px; color: var(--gray-500); padding: 8px 14px; background: var(--gray-50); border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; }
         .auto-export-status .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .dot.green { background: var(--success); }
         .dot.gray { background: var(--gray-300); }
         .dot.yellow { background: var(--warning); }
-
         .checkbox-col { width: 40px; text-align: center; }
         .checkbox-col input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
-
         .batch-delete-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .batch-delete-bar .selected-info { font-size: 14px; color: var(--gray-600); }
-
         .hidden-input { display: none; }
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; font-size: 18px; color: var(--gray-700); flex-direction: column; gap: 16px; }
         .loading-overlay.show { display: flex; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .dept-stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .dept-stats-table th { background: var(--gray-100); padding: 8px; text-align: left; }
+        .dept-stats-table td { padding: 8px; border-bottom: 1px solid var(--gray-200); }
+        .dept-stats-table .total-row { font-weight: bold; background: var(--gray-50); }
     </style>
 </head>
 <body>
-
-    <!-- Loading -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner"></div>
         <span id="loadingText">加载数据中...</span>
     </div>
-
     <div id="app">
         <div class="toast-container" id="toastContainer"></div>
 
@@ -283,8 +249,18 @@
                             <input type="date" class="form-control" id="regDate" required />
                         </div>
                         <div class="form-group">
-                            <label class="form-label">用餐时间 <span class="required">*</span></label>
-                            <input type="time" class="form-control" id="regTime" required />
+                            <label class="form-label">用餐时段 <span class="required">*</span></label>
+                            <div style="display: flex; gap: 16px; margin-top: 6px;">
+                                <div class="form-check" style="padding:0;">
+                                    <input type="radio" name="mealPeriod" value="lunch" id="periodLunch" checked />
+                                    <label for="periodLunch">午餐</label>
+                                </div>
+                                <div class="form-check" style="padding:0;">
+                                    <input type="radio" name="mealPeriod" value="dinner" id="periodDinner" />
+                                    <label for="periodDinner">晚餐</label>
+                                </div>
+                            </div>
+                            <div class="form-hint">选择午餐或晚餐，系统将自动记录对应时间</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -318,7 +294,7 @@
                             <label for="settleOther">
                                 其他：
                                 <span class="custom-input">
-                                    <input type="text" id="settleOtherInput" placeholder="输入部门代码" disabled />
+                                    <input type="text" id="settleOtherInput" placeholder="输入部门成本中心或项目号" disabled />
                                 </span>
                             </label>
                         </div>
@@ -345,13 +321,11 @@
                     </div>
                     <button class="btn btn-outline btn-sm" id="btnSummaryBack">← 退出</button>
                 </div>
-
                 <div class="stats" id="statsContainer">
                     <div class="stat-item"><div class="num" id="statTotal">0</div><div class="label">总记录</div></div>
                     <div class="stat-item"><div class="num" id="statToday">0</div><div class="label">今日登记</div></div>
-                    <div class="stat-item"><div class="num" id="statPortions">0</div><div class="label">总份数</div></div>
+                    <div class="stat-item"><div class="num" id="statPortions">0</div><div class="label" id="statPortionsLabel">总份数</div></div>
                 </div>
-
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center;">
                     <div class="auto-export-status" id="autoExportStatus">
                         <span class="dot gray" id="exportDot"></span>
@@ -359,7 +333,6 @@
                     </div>
                     <button class="btn btn-outline btn-sm" id="btnRefreshData" style="margin-left:auto;">🔄 刷新数据</button>
                 </div>
-
                 <div class="filter-bar">
                     <div class="filter-group">
                         <label>开始日期</label>
@@ -378,24 +351,21 @@
                         <button class="btn btn-outline btn-sm" id="btnClearFilter">重置</button>
                     </div>
                 </div>
-
                 <div class="batch-delete-bar">
                     <div class="selected-info" id="selectedInfo">未选中任何记录</div>
                     <button class="btn btn-danger btn-sm" id="btnBatchDelete">🗑️ 删除选中</button>
                 </div>
-
                 <div class="btn-group" style="margin-bottom:16px;">
                     <button class="btn btn-success btn-sm" id="btnAddRecord">➕ 添加记录</button>
-                    <button class="btn btn-warning btn-sm" id="btnExport">📥 导出 CSV</button>
                     <button class="btn btn-primary btn-sm" id="btnExportExcel">📊 导出 Excel</button>
-                    <button class="btn btn-outline btn-sm" id="btnManageUsers">👥 管理用户</button>
                     <button class="btn btn-danger btn-sm" id="btnExportToday">📤 导出今日</button>
+                    <button class="btn btn-warning btn-sm" id="btnDeptStats">📊 部门统计</button>
+                    <button class="btn btn-outline btn-sm" id="btnManageUsers">👥 管理用户</button>
+                    <button class="btn btn-info btn-sm" id="btnGenerateFixed">⚡ 生成固定记录</button>
                 </div>
-
                 <div class="flex-between mb-8">
                     <span class="record-count" id="recordCount">共 0 条记录</span>
                 </div>
-
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -408,12 +378,13 @@
                                 <th style="width:50px;">份</th>
                                 <th style="width:70px;">餐标</th>
                                 <th style="min-width:80px;">结算部门</th>
+                                <th style="min-width:80px;">时段</th>
                                 <th style="min-width:100px;">备注</th>
                                 <th style="width:160px;">操作</th>
                             </tr>
                         </thead>
                         <tbody id="recordTableBody">
-                            <tr><td colspan="10"><div class="empty-state"><span class="icon">📭</span><p>暂无用餐记录</p></div></td></tr>
+                            <tr><td colspan="11"><div class="empty-state"><span class="icon">📭</span><p>暂无用餐记录</p></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -439,8 +410,17 @@
                             <input type="date" class="form-control" id="modalRegDate" required />
                         </div>
                         <div class="form-group">
-                            <label class="form-label">时间 <span class="required">*</span></label>
-                            <input type="time" class="form-control" id="modalRegTime" required />
+                            <label class="form-label">时段 <span class="required">*</span></label>
+                            <div style="display: flex; gap: 16px; margin-top: 6px;">
+                                <div class="form-check" style="padding:0;">
+                                    <input type="radio" name="modalMealPeriod" value="lunch" id="modalPeriodLunch" checked />
+                                    <label for="modalPeriodLunch">午餐</label>
+                                </div>
+                                <div class="form-check" style="padding:0;">
+                                    <input type="radio" name="modalMealPeriod" value="dinner" id="modalPeriodDinner" />
+                                    <label for="modalPeriodDinner">晚餐</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -474,7 +454,7 @@
                             <label for="modalSettleOther">
                                 其他：
                                 <span class="custom-input">
-                                    <input type="text" id="modalSettleOtherInput" placeholder="输入部门代码" disabled />
+                                    <input type="text" id="modalSettleOtherInput" placeholder="输入部门成本中心或项目号" disabled />
                                 </span>
                             </label>
                         </div>
@@ -521,6 +501,19 @@
             </div>
         </div>
 
+        <!-- ==================== MODAL: 部门统计 ==================== -->
+        <div class="modal-overlay" id="modalDeptStats">
+            <div class="modal" style="max-width:600px;">
+                <div class="modal-header">
+                    <h3>📊 按部门分组统计</h3>
+                    <button class="modal-close" data-modal-close="modalDeptStats">✕</button>
+                </div>
+                <div id="deptStatsContent">
+                    <p style="color:var(--gray-500);">加载中...</p>
+                </div>
+            </div>
+        </div>
+
         <!-- ==================== MODAL: Confirm Delete ==================== -->
         <div class="modal-overlay" id="modalConfirmDelete">
             <div class="modal" style="max-width:400px;">
@@ -538,20 +531,29 @@
     </div>
 
     <script>
-        // ================================================================
+// ================================================================
         // SUPABASE 配置
         // ================================================================
         const SUPABASE_URL = 'https://lfydabwbulnkmqoiecgt.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmeWRhYndidWxua21xb2llY2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxODY2MzgsImV4cCI6MjA5OTc2MjYzOH0.mxjgFh3gMmRMQMZiMCIQ2-qyxb35nL-9H9ZTclN-ZRs';
 
         // ================================================================
+        // 固定记录配置（需求4）
+        // ================================================================
+        const FIXED_RECORDS = [
+               { name: '周海召', portions: 5 },
+               { name: '张文武', portions: 6 },
+               { name: '刘振', portions: 6 },
+               { name: '王涛', portions: 10 },
+
+        ];
+
+        // ================================================================
         // 数据层（云端版）
         // ================================================================
-
-        // 使用 supabaseClient 作为变量名，避免与全局 supabase 冲突
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 默认用户名单（云端有数据时以云端为准）
+        // ---------- 默认用户名单（137人） ----------
         const DEFAULT_USERS = [
             { id: 'u1', name: '徐燕', department: '徐燕', phone: '' },
             { id: 'u2', name: '俞允华', department: '财务', phone: '' },
@@ -692,173 +694,10 @@
             { id: 'u137', name: '刘树坤', department: 'MD', phone: '' }
         ];
 
-        // ---------- 云端数据访问函数 ----------
-        let cachedUsers = [];
-        let cachedRecords = [];
-        let isDataLoaded = false;
-
-        async function loadUsersFromCloud() {
-            const { data, error } = await supabaseClient.from('users').select('*');
-            if (error) {
-                console.error('加载用户失败:', error);
-                return null;
-            }
-            return data;
-        }
-
-        async function loadRecordsFromCloud() {
-            const { data, error } = await supabaseClient.from('records').select('*');
-            if (error) {
-                console.error('加载记录失败:', error);
-                return null;
-            }
-            return data;
-        }
-
-        async function syncUsersToCloud(users) {
-            // 先清空再批量插入（简单策略，适合小团队）
-            const { error: delErr } = await supabaseClient.from('users').delete().neq('id', '');
-            if (delErr) throw delErr;
-            if (users.length === 0) return;
-            const { error: insErr } = await supabaseClient.from('users').insert(users);
-            if (insErr) throw insErr;
-        }
-
-        async function syncRecordsToCloud(records) {
-            const { error: delErr } = await supabaseClient.from('records').delete().neq('id', '');
-            if (delErr) throw delErr;
-            if (records.length === 0) return;
-            const { error: insErr } = await supabaseClient.from('records').insert(records);
-            if (insErr) throw insErr;
-        }
-
-        // 合并导入（用于从云端加载后合并到本地缓存）
-        function mergeUsers(cloudUsers) {
-            if (!cloudUsers || cloudUsers.length === 0) {
-                cachedUsers = [...DEFAULT_USERS];
-                return;
-            }
-            // 用云端数据覆盖本地
-            cachedUsers = cloudUsers;
-        }
-
-        function mergeRecords(cloudRecords) {
-            cachedRecords = cloudRecords || [];
-        }
-
-        // ---------- 对外数据接口（替换原来的 localStorage 版本） ----------
-        async function getUsers() {
-            if (!isDataLoaded) {
-                await loadAllData();
-            }
-            return cachedUsers;
-        }
-
-        async function getRecords() {
-            if (!isDataLoaded) {
-                await loadAllData();
-            }
-            return cachedRecords;
-        }
-
-        async function setUsers(users) {
-            cachedUsers = users;
-            await syncUsersToCloud(users);
-        }
-
-        async function setRecords(records) {
-            cachedRecords = records;
-            await syncRecordsToCloud(records);
-        }
-
-        // 添加单条记录（增量方式，避免全量同步）
-        async function addRecord(record) {
-            const { error } = await supabaseClient.from('records').insert(record);
-            if (error) throw error;
-            cachedRecords.push(record);
-        }
-
-        // 更新单条记录
-        async function updateRecord(recordId, updates) {
-            const { error } = await supabaseClient.from('records').update(updates).eq('id', recordId);
-            if (error) throw error;
-            const idx = cachedRecords.findIndex(r => r.id === recordId);
-            if (idx !== -1) {
-                cachedRecords[idx] = { ...cachedRecords[idx], ...updates };
-            }
-        }
-
-        // 删除单条记录
-        async function deleteRecord(recordId) {
-            const { error } = await supabaseClient.from('records').delete().eq('id', recordId);
-            if (error) throw error;
-            cachedRecords = cachedRecords.filter(r => r.id !== recordId);
-        }
-
-        // 批量删除记录
-        async function deleteRecords(recordIds) {
-            const { error } = await supabaseClient.from('records').delete().in('id', recordIds);
-            if (error) throw error;
-            cachedRecords = cachedRecords.filter(r => !recordIds.includes(r.id));
-        }
-
-        // 添加用户（增量）
-        async function addUser(user) {
-            const { error } = await supabaseClient.from('users').insert(user);
-            if (error) throw error;
-            cachedUsers.push(user);
-        }
-
-        // 删除用户
-        async function deleteUser(userId) {
-            const { error } = await supabaseClient.from('users').delete().eq('id', userId);
-            if (error) throw error;
-            cachedUsers = cachedUsers.filter(u => u.id !== userId);
-        }
-
-        // 批量删除用户
-        async function deleteAllUsers() {
-            const { error } = await supabaseClient.from('users').delete().neq('id', '');
-            if (error) throw error;
-            cachedUsers = [];
-        }
-
-        // 加载所有数据
-        async function loadAllData() {
-            showLoading('加载数据中...');
-            try {
-                const [users, records] = await Promise.all([
-                    loadUsersFromCloud(),
-                    loadRecordsFromCloud()
-                ]);
-                
-                // 如果云端没有用户数据，初始化默认用户
-                if (!users || users.length === 0) {
-                    await syncUsersToCloud(DEFAULT_USERS);
-                    cachedUsers = [...DEFAULT_USERS];
-                } else {
-                    cachedUsers = users;
-                }
-                
-                cachedRecords = records || [];
-                isDataLoaded = true;
-                updateUserDatalist();
-            } catch (err) {
-                console.error('加载数据失败:', err);
-                showToast('加载数据失败，请检查网络或刷新重试', 'error');
-                // 使用默认数据作为降级
-                cachedUsers = [...DEFAULT_USERS];
-                cachedRecords = [];
-            } finally {
-                hideLoading();
-            }
-        }
-
         // ---------- 工具函数 ----------
         function genId() {
             return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
         }
-
         function formatDate(d) {
             const dt = new Date(d);
             const y = dt.getFullYear();
@@ -866,7 +705,6 @@
             const day = String(dt.getDate()).padStart(2, '0');
             return `${y}-${m}-${day}`;
         }
-
         function formatDateTime(d) {
             const dt = new Date(d);
             const y = dt.getFullYear();
@@ -876,55 +714,138 @@
             const min = String(dt.getMinutes()).padStart(2, '0');
             return `${y}-${m}-${day} ${h}:${min}`;
         }
-
         function toDateStr(d) {
             return formatDate(new Date(d));
         }
-
         function isToday(d) {
             return toDateStr(d) === getTodayStr();
         }
-
         function getTodayStr() {
             return formatDate(new Date());
         }
-
         function getNowISO() {
             return new Date().toISOString();
         }
-
         function findUserById(id) {
             return cachedUsers.find(u => u.id === id) || null;
         }
-
         function findUserByName(name) {
             return cachedUsers.find(u => u.name === name) || null;
         }
-
         function updateUserDatalist() {
             const datalist = document.getElementById('userDatalist');
             if (!datalist) return;
             datalist.innerHTML = cachedUsers.map(u => `<option value="${u.name}">${u.department}</option>`).join('');
         }
 
-        // ================================================================
-        // 加载状态
-        // ================================================================
+        // ---------- 数据缓存与云端操作 ----------
+        let cachedUsers = [];
+        let cachedRecords = [];
+        let isDataLoaded = false;
 
-        function showLoading(text = '加载中...') {
-            const overlay = document.getElementById('loadingOverlay');
-            document.getElementById('loadingText').textContent = text;
-            overlay.classList.add('show');
+        async function loadUsersFromCloud() {
+            const { data, error } = await supabaseClient.from('users').select('*');
+            if (error) { console.error('加载用户失败:', error); return null; }
+            return data;
+        }
+        async function loadRecordsFromCloud() {
+            const { data, error } = await supabaseClient.from('records').select('*');
+            if (error) { console.error('加载记录失败:', error); return null; }
+            return data;
+        }
+        async function syncUsersToCloud(users) {
+            const { error: delErr } = await supabaseClient.from('users').delete().neq('id', '');
+            if (delErr) throw delErr;
+            if (users.length === 0) return;
+            const { error: insErr } = await supabaseClient.from('users').insert(users);
+            if (insErr) throw insErr;
+        }
+        async function syncRecordsToCloud(records) {
+            const { error: delErr } = await supabaseClient.from('records').delete().neq('id', '');
+            if (delErr) throw delErr;
+            if (records.length === 0) return;
+            const { error: insErr } = await supabaseClient.from('records').insert(records);
+            if (insErr) throw insErr;
         }
 
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('show');
+        // 对外接口
+        async function getUsers() {
+            if (!isDataLoaded) await loadAllData();
+            return cachedUsers;
+        }
+        async function getRecords() {
+            if (!isDataLoaded) await loadAllData();
+            return cachedRecords;
+        }
+        async function setUsers(users) {
+            cachedUsers = users;
+            await syncUsersToCloud(users);
+        }
+        async function setRecords(records) {
+            cachedRecords = records;
+            await syncRecordsToCloud(records);
+        }
+        async function addRecord(record) {
+            const { error } = await supabaseClient.from('records').insert(record);
+            if (error) throw error;
+            cachedRecords.push(record);
+        }
+        async function updateRecord(recordId, updates) {
+            const { error } = await supabaseClient.from('records').update(updates).eq('id', recordId);
+            if (error) throw error;
+            const idx = cachedRecords.findIndex(r => r.id === recordId);
+            if (idx !== -1) cachedRecords[idx] = { ...cachedRecords[idx], ...updates };
+        }
+        async function deleteRecord(recordId) {
+            const { error } = await supabaseClient.from('records').delete().eq('id', recordId);
+            if (error) throw error;
+            cachedRecords = cachedRecords.filter(r => r.id !== recordId);
+        }
+        async function deleteRecords(recordIds) {
+            const { error } = await supabaseClient.from('records').delete().in('id', recordIds);
+            if (error) throw error;
+            cachedRecords = cachedRecords.filter(r => !recordIds.includes(r.id));
+        }
+        async function addUser(user) {
+            const { error } = await supabaseClient.from('users').insert(user);
+            if (error) throw error;
+            cachedUsers.push(user);
+        }
+        async function deleteUser(userId) {
+            const { error } = await supabaseClient.from('users').delete().eq('id', userId);
+            if (error) throw error;
+            cachedUsers = cachedUsers.filter(u => u.id !== userId);
+        }
+        async function deleteAllUsers() {
+            const { error } = await supabaseClient.from('users').delete().neq('id', '');
+            if (error) throw error;
+            cachedUsers = [];
         }
 
-        // ================================================================
-        // TOAST
-        // ================================================================
+        async function loadAllData() {
+            showLoading('加载数据中...');
+            try {
+                const [users, records] = await Promise.all([loadUsersFromCloud(), loadRecordsFromCloud()]);
+                if (!users || users.length === 0) {
+                    await syncUsersToCloud(DEFAULT_USERS);
+                    cachedUsers = [...DEFAULT_USERS];
+                } else {
+                    cachedUsers = users;
+                }
+                cachedRecords = records || [];
+                isDataLoaded = true;
+                updateUserDatalist();
+            } catch (err) {
+                console.error('加载数据失败:', err);
+                showToast('加载数据失败，请检查网络或刷新重试', 'error');
+                cachedUsers = [...DEFAULT_USERS];
+                cachedRecords = [];
+            } finally {
+                hideLoading();
+            }
+        }
 
+        // ---------- Toast, Modal, Loading ----------
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -937,37 +858,21 @@
                 setTimeout(() => toast.remove(), 300);
             }, duration);
         }
-
-        // ================================================================
-        // MODAL HELPERS
-        // ================================================================
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('open');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('open');
-        }
-
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         document.querySelectorAll('[data-modal-close]').forEach(el => {
-            el.addEventListener('click', () => {
-                closeModal(el.dataset.modalClose);
-            });
+            el.addEventListener('click', () => closeModal(el.dataset.modalClose));
         });
-
         document.querySelectorAll('.modal-overlay').forEach(el => {
-            el.addEventListener('click', (e) => {
-                if (e.target === el) {
-                    el.classList.remove('open');
-                }
-            });
+            el.addEventListener('click', (e) => { if (e.target === el) el.classList.remove('open'); });
         });
-
-        // ================================================================
-        // PAGE NAVIGATION
-        // ================================================================
-
+        function showLoading(text = '加载中...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
@@ -976,16 +881,13 @@
         // ================================================================
         // LOGIN
         // ================================================================
-
         let adminPasswordAttempts = 0;
-
         document.getElementById('btnUserLogin').addEventListener('click', async () => {
             await loadAllData();
             showPage('registerPage');
             populateRegisterForm();
             setDefaultDateTime();
         });
-
         document.getElementById('btnAdminLogin').addEventListener('click', () => {
             const area = document.getElementById('adminPasswordArea');
             if (area.style.display === 'block') {
@@ -996,17 +898,14 @@
             document.getElementById('adminPasswordInput').value = '';
             document.getElementById('adminPasswordInput').focus();
         });
-
         document.getElementById('btnAdminConfirm').addEventListener('click', handleAdminLogin);
         document.getElementById('adminPasswordInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleAdminLogin();
         });
-
         async function handleAdminLogin() {
             const input = document.getElementById('adminPasswordInput');
             const pwd = input.value.trim();
-            const correct = 'admin210'; // 密码硬编码，可自行修改
-
+            const correct = 'admin210';
             if (pwd === correct) {
                 await loadAllData();
                 showPage('summaryPage');
@@ -1033,21 +932,27 @@
         // ================================================================
         // REGISTER
         // ================================================================
-
         function populateRegisterForm() {
             updateUserDatalist();
             document.getElementById('regUser').value = '';
             document.getElementById('regRemark').value = '';
         }
-
         function setDefaultDateTime() {
             const now = new Date();
             document.getElementById('regDate').value = formatDate(now);
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('regTime').value = `${h}:${m}`;
+            document.getElementById('regTime').value = '12:00';
         }
+        // 时段切换
+        document.querySelectorAll('input[name="mealPeriod"]').forEach(el => {
+            el.addEventListener('change', function() {
+                // 不需要额外操作，提交时取用
+            });
+        });
+        document.querySelectorAll('input[name="modalMealPeriod"]').forEach(el => {
+            el.addEventListener('change', function() {});
+        });
 
+        // 餐标切换
         document.querySelectorAll('input[name="mealStandard"]').forEach(el => {
             el.addEventListener('change', () => {
                 const otherInput = document.getElementById('mealStdOtherInput');
@@ -1055,7 +960,6 @@
                 if (document.getElementById('mealStd15').checked) otherInput.value = '';
             });
         });
-
         document.querySelectorAll('input[name="settlementDept"]').forEach(el => {
             el.addEventListener('change', () => {
                 const otherInput = document.getElementById('settleOtherInput');
@@ -1069,42 +973,32 @@
             const submitBtn = document.getElementById('registerSubmitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ 提交中...';
-
             try {
                 const userName = document.getElementById('regUser').value.trim();
                 if (!userName) { showToast('请输入登记人姓名', 'warning'); return; }
-
                 const user = findUserByName(userName);
-                if (!user) {
-                    showToast(`未找到名为“${userName}”的用户，请检查姓名或联系管理员`, 'error');
-                    return;
-                }
-
+                if (!user) { showToast(`未找到名为“${userName}”的用户`, 'error'); return; }
                 const date = document.getElementById('regDate').value;
-                const time = document.getElementById('regTime').value;
-                if (!date || !time) { showToast('请选择完整的日期和时间', 'warning'); return; }
-
+                const period = document.querySelector('input[name="mealPeriod"]:checked').value;
+                const time = period === 'lunch' ? '12:00' : '18:00';
+                if (!date) { showToast('请选择日期', 'warning'); return; }
                 const portions = parseInt(document.getElementById('regPortions').value) || 1;
                 if (portions < 1) { showToast('份数至少为 1', 'warning'); return; }
-
                 let mealStandard = 15;
                 const stdRadio = document.querySelector('input[name="mealStandard"]:checked');
                 if (stdRadio && stdRadio.value === 'other') {
                     const val = parseFloat(document.getElementById('mealStdOtherInput').value);
-                    if (isNaN(val) || val <= 0) { showToast('请输入有效的餐标金额', 'warning'); return; }
+                    if (isNaN(val) || val <= 0) { showToast('请输入有效餐标金额', 'warning'); return; }
                     mealStandard = val;
                 }
-
                 let settlementDept = user.department;
                 const settleRadio = document.querySelector('input[name="settlementDept"]:checked');
                 if (settleRadio && settleRadio.value === 'other') {
                     const val = document.getElementById('settleOtherInput').value.trim();
-                    if (!val) { showToast('请输入结算部门代码', 'warning'); return; }
+                    if (!val) { showToast('请输入结算部门', 'warning'); return; }
                     settlementDept = val;
                 }
-
                 const remark = document.getElementById('regRemark').value.trim() || '';
-
                 const dateTimeStr = `${date} ${time}`;
                 const record = {
                     id: 'r_' + genId(),
@@ -1120,10 +1014,7 @@
                     remark: remark,
                     created_at: getNowISO(),
                 };
-
-                // 云端添加
                 await addRecord(record);
-
                 showToast(`✅ ${user.name} 登记成功！${portions} 份`, 'success');
                 document.getElementById('registerForm').reset();
                 setDefaultDateTime();
@@ -1135,6 +1026,7 @@
                 document.getElementById('settleDefault').checked = true;
                 document.getElementById('settleOtherInput').disabled = true;
                 document.getElementById('settleOtherInput').value = '';
+                document.getElementById('periodLunch').checked = true;
             } catch (err) {
                 showToast('提交失败，请重试', 'error');
                 console.error(err);
@@ -1151,23 +1043,21 @@
         // ================================================================
         // SUMMARY
         // ================================================================
-
         let deleteTargetId = null;
         let selectedIds = new Set();
         let filterDebounceTimer = null;
+        let currentFilteredRecords = null;
 
         function renderSummary() {
-            // 从缓存中读取
             const allRecords = [...cachedRecords];
             allRecords.sort((a, b) => {
                 if (a.date_time > b.date_time) return -1;
                 if (a.date_time < b.date_time) return 1;
                 return 0;
             });
-            // 更新全局 currentRecords 用于筛选
             window._currentRecords = allRecords;
-            
-            updateStats();
+            currentFilteredRecords = null;
+            updateStatsWithFilter(null);
             applyFilters();
             updateRecordCount();
             updateSelectedInfo();
@@ -1176,38 +1066,33 @@
             selectedIds.clear();
         }
 
-        function updateStats() {
+        function updateStatsWithFilter(filteredRecords) {
             const all = cachedRecords || [];
             const today = all.filter(r => isToday(r.date_time));
             const totalPortions = all.reduce((sum, r) => sum + (r.portions || 0), 0);
             document.getElementById('statTotal').textContent = all.length;
             document.getElementById('statToday').textContent = today.length;
-            document.getElementById('statPortions').textContent = totalPortions;
-        }
-
-        function updateRecordCount() {
-            const tbody = document.getElementById('recordTableBody');
-            const rows = tbody.querySelectorAll('tr:not(.empty-row)');
-            document.getElementById('recordCount').textContent = `共 ${rows.length} 条记录`;
-        }
-
-        function updateSelectedInfo() {
-            const info = document.getElementById('selectedInfo');
-            const count = selectedIds.size;
-            info.textContent = count === 0 ? '未选中任何记录' : `已选中 ${count} 条记录`;
+            if (filteredRecords && filteredRecords.length > 0) {
+                const filteredPortions = filteredRecords.reduce((sum, r) => sum + (r.portions || 0), 0);
+                document.getElementById('statPortions').textContent = filteredPortions;
+                document.getElementById('statPortionsLabel').textContent = '筛选份数';
+            } else {
+                document.getElementById('statPortions').textContent = totalPortions;
+                document.getElementById('statPortionsLabel').textContent = '总份数';
+            }
         }
 
         function applyFilters() {
             const start = document.getElementById('filterStart').value;
             const end = document.getElementById('filterEnd').value;
             const userNameFilter = document.getElementById('filterUser').value.trim();
-
             let filtered = [...(window._currentRecords || [])];
             if (start) filtered = filtered.filter(r => r.date >= start);
             if (end) filtered = filtered.filter(r => r.date <= end);
             if (userNameFilter) filtered = filtered.filter(r => r.register_name && r.register_name.includes(userNameFilter));
-
+            currentFilteredRecords = filtered;
             renderTable(filtered);
+            updateStatsWithFilter(filtered);
         }
 
         function debounceFilter() {
@@ -1215,105 +1100,87 @@
             filterDebounceTimer = setTimeout(applyFilters, 300);
         }
 
+        function getMealTag(timeStr) {
+            if (timeStr === '12:00') return { label: '午餐', cls: 'tag-lunch' };
+            if (timeStr === '18:00') return { label: '晚餐', cls: 'tag-dinner' };
+            const hour = parseInt(timeStr.split(':')[0]);
+            if (hour >= 11 && hour < 14) return { label: '午餐', cls: 'tag-lunch' };
+            if (hour >= 17 && hour < 21) return { label: '晚餐', cls: 'tag-dinner' };
+            return { label: '其他', cls: 'tag-other' };
+        }
+
         function renderTable(records) {
             const tbody = document.getElementById('recordTableBody');
-
             if (!records || records.length === 0) {
-                tbody.innerHTML = `
-                    <tr class="empty-row">
-                        <td colspan="10">
-                            <div class="empty-state">
-                                <span class="icon">📭</span>
-                                <p>暂无用餐记录</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr class="empty-row"><td colspan="11"><div class="empty-state"><span class="icon">📭</span><p>暂无用餐记录</p></div></td></tr>`;
                 document.getElementById('selectAll').checked = false;
                 return;
             }
-
             let html = '';
             records.forEach((r, idx) => {
                 const stdDisplay = r.meal_standard === 15 ? '15元' : `${r.meal_standard}元`;
                 const deptDisplay = r.settlement_department || r.department || '-';
                 const remarkDisplay = r.remark || '';
                 const checked = selectedIds.has(r.id) ? 'checked' : '';
-                html += `
-                    <tr>
-                        <td class="checkbox-col"><input type="checkbox" class="row-checkbox" data-id="${r.id}" ${checked} /></td>
-                        <td>${idx + 1}</td>
-                        <td><strong>${r.register_name || '未知'}</strong></td>
-                        <td>${r.department || '-'}</td>
-                        <td>${r.date_time || '-'}</td>
-                        <td>${r.portions || 1}</td>
-                        <td><span class="tag tag-primary">${stdDisplay}</span></td>
-                        <td><span class="tag">${deptDisplay}</span></td>
-                        <td class="remark-cell" title="${remarkDisplay}">${remarkDisplay}</td>
-                        <td>
-                            <div class="actions">
-                                <button class="btn btn-primary btn-sm" data-edit-id="${r.id}">修改</button>
-                                <button class="btn btn-warning btn-sm" data-copy-id="${r.id}">复制</button>
-                                <button class="btn btn-danger btn-sm" data-delete-id="${r.id}">删除</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                const mealInfo = getMealTag(r.time);
+                html += `<tr>
+                    <td class="checkbox-col"><input type="checkbox" class="row-checkbox" data-id="${r.id}" ${checked} /></td>
+                    <td>${idx + 1}</td>
+                    <td><strong>${r.register_name || '未知'}</strong></td>
+                    <td>${r.department || '-'}</td>
+                    <td>${r.date_time || '-'}</td>
+                    <td>${r.portions || 1}</td>
+                    <td><span class="tag tag-primary">${stdDisplay}</span></td>
+                    <td><span class="tag">${deptDisplay}</span></td>
+                    <td><span class="tag ${mealInfo.cls}">${mealInfo.label}</span></td>
+                    <td class="remark-cell" title="${remarkDisplay}">${remarkDisplay}</td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-primary btn-sm" data-edit-id="${r.id}">修改</button>
+                            <button class="btn btn-warning btn-sm" data-copy-id="${r.id}">复制</button>
+                            <button class="btn btn-danger btn-sm" data-delete-id="${r.id}">删除</button>
+                        </div>
+                    </td>
+                </tr>`;
             });
-
             tbody.innerHTML = html;
 
             tbody.querySelectorAll('.row-checkbox').forEach(cb => {
                 cb.addEventListener('change', (e) => {
                     const id = e.target.dataset.id;
-                    if (e.target.checked) {
-                        selectedIds.add(id);
-                    } else {
-                        selectedIds.delete(id);
-                    }
+                    if (e.target.checked) selectedIds.add(id);
+                    else selectedIds.delete(id);
                     updateSelectedInfo();
-                    const allCheckboxes = document.querySelectorAll('.row-checkbox');
+                    const allCb = document.querySelectorAll('.row-checkbox');
                     const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-                    document.getElementById('selectAll').checked = (allCheckboxes.length === checkedCount && allCheckboxes
-                        .length > 0);
+                    document.getElementById('selectAll').checked = (allCb.length === checkedCount && allCb.length > 0);
                 });
             });
-
             tbody.querySelectorAll('[data-delete-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     deleteTargetId = btn.dataset.deleteId;
                     openModal('modalConfirmDelete');
                 });
             });
-
             tbody.querySelectorAll('[data-edit-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const recordId = btn.dataset.editId;
                     const record = cachedRecords.find(r => r.id === recordId);
-                    if (record) {
-                        openRecordModal(record, recordId);
-                    } else {
-                        showToast('记录不存在', 'error');
-                    }
+                    if (record) openRecordModal(record, recordId);
+                    else showToast('记录不存在', 'error');
                 });
             });
-
             tbody.querySelectorAll('[data-copy-id]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const recordId = btn.dataset.copyId;
                     const record = cachedRecords.find(r => r.id === recordId);
-                    if (record) {
-                        openRecordModal(record, null);
-                    } else {
-                        showToast('记录不存在', 'error');
-                    }
+                    if (record) openRecordModal(record, null);
+                    else showToast('记录不存在', 'error');
                 });
             });
-
-            const allCheckboxes = document.querySelectorAll('.row-checkbox');
+            const allCb = document.querySelectorAll('.row-checkbox');
             const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-            document.getElementById('selectAll').checked = (allCheckboxes.length === checkedCount && allCheckboxes.length > 0);
-
+            document.getElementById('selectAll').checked = (allCb.length === checkedCount && allCb.length > 0);
             updateRecordCount();
         }
 
@@ -1322,44 +1189,31 @@
             document.querySelectorAll('.row-checkbox').forEach(cb => {
                 cb.checked = checked;
                 const id = cb.dataset.id;
-                if (checked) {
-                    selectedIds.add(id);
-                } else {
-                    selectedIds.delete(id);
-                }
+                if (checked) selectedIds.add(id);
+                else selectedIds.delete(id);
             });
             updateSelectedInfo();
         });
 
         document.getElementById('btnBatchDelete').addEventListener('click', async () => {
-            if (selectedIds.size === 0) {
-                showToast('请先选中要删除的记录', 'warning');
-                return;
-            }
-            if (confirm(`确定要删除选中的 ${selectedIds.size} 条记录吗？此操作不可撤销。`)) {
+            if (selectedIds.size === 0) { showToast('请先选中要删除的记录', 'warning'); return; }
+            if (confirm(`确定删除选中的 ${selectedIds.size} 条记录吗？`)) {
                 try {
                     const idsToDelete = Array.from(selectedIds);
                     await deleteRecords(idsToDelete);
-                    const deletedCount = idsToDelete.length;
                     selectedIds.clear();
                     renderSummary();
                     document.getElementById('selectAll').checked = false;
-                    showToast(`✅ 已删除 ${deletedCount} 条记录`, 'success');
-                } catch (err) {
-                    showToast('删除失败，请重试', 'error');
-                    console.error(err);
-                }
+                    showToast(`✅ 已删除 ${idsToDelete.length} 条记录`, 'success');
+                } catch (err) { showToast('删除失败', 'error'); console.error(err); }
             }
         });
 
-        // 打开记录模态框
         function openRecordModal(recordData, editId) {
             updateUserDatalist();
-
             const modalTitle = document.getElementById('modalRecordTitle');
             const submitBtn = document.getElementById('modalSubmitBtn');
             const editingIdInput = document.getElementById('editingRecordId');
-
             if (editId) {
                 modalTitle.textContent = '✏️ 修改用餐记录';
                 submitBtn.textContent = '保存修改';
@@ -1369,14 +1223,19 @@
                 submitBtn.textContent = '确认添加';
                 editingIdInput.value = '';
             }
-
             if (recordData) {
                 document.getElementById('modalRegUser').value = recordData.register_name || '';
                 document.getElementById('modalRegDate').value = recordData.date || '';
-                document.getElementById('modalRegTime').value = recordData.time || '';
                 document.getElementById('modalRegPortions').value = recordData.portions || 1;
                 document.getElementById('modalRegRemark').value = recordData.remark || '';
-
+                // 时段
+                const time = recordData.time;
+                if (time === '12:00') document.getElementById('modalPeriodLunch').checked = true;
+                else if (time === '18:00') document.getElementById('modalPeriodDinner').checked = true;
+                else {
+                    // 若时间不符，默认午餐
+                    document.getElementById('modalPeriodLunch').checked = true;
+                }
                 const std = recordData.meal_standard;
                 if (std === 15) {
                     document.getElementById('modalStd15').checked = true;
@@ -1387,7 +1246,6 @@
                     document.getElementById('modalStdOtherInput').disabled = false;
                     document.getElementById('modalStdOtherInput').value = std || '';
                 }
-
                 const settle = recordData.settlement_department || recordData.department;
                 const defaultDept = recordData.department || '';
                 if (settle === defaultDept) {
@@ -1403,11 +1261,9 @@
                 document.getElementById('modalRegUser').value = '';
                 const now = new Date();
                 document.getElementById('modalRegDate').value = formatDate(now);
-                const h = String(now.getHours()).padStart(2, '0');
-                const m = String(now.getMinutes()).padStart(2, '0');
-                document.getElementById('modalRegTime').value = `${h}:${m}`;
                 document.getElementById('modalRegPortions').value = 1;
                 document.getElementById('modalRegRemark').value = '';
+                document.getElementById('modalPeriodLunch').checked = true;
                 document.getElementById('modalStd15').checked = true;
                 document.getElementById('modalStdOtherInput').disabled = true;
                 document.getElementById('modalStdOtherInput').value = '';
@@ -1415,7 +1271,6 @@
                 document.getElementById('modalSettleOtherInput').disabled = true;
                 document.getElementById('modalSettleOtherInput').value = '';
             }
-
             openModal('modalAddRecord');
         }
 
@@ -1426,7 +1281,6 @@
                 if (document.getElementById('modalStd15').checked) otherInput.value = '';
             });
         });
-
         document.querySelectorAll('input[name="modalSettleDept"]').forEach(el => {
             el.addEventListener('change', () => {
                 const otherInput = document.getElementById('modalSettleOtherInput');
@@ -1440,43 +1294,33 @@
             const submitBtn = document.getElementById('modalSubmitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ 保存中...';
-
             try {
                 const editId = document.getElementById('editingRecordId').value;
                 const userName = document.getElementById('modalRegUser').value.trim();
                 if (!userName) { showToast('请输入登记人姓名', 'warning'); return; }
-
                 const user = findUserByName(userName);
-                if (!user) {
-                    showToast(`未找到名为“${userName}”的用户，请检查`, 'error');
-                    return;
-                }
-
+                if (!user) { showToast(`未找到用户“${userName}”`, 'error'); return; }
                 const date = document.getElementById('modalRegDate').value;
-                const time = document.getElementById('modalRegTime').value;
-                if (!date || !time) { showToast('请选择完整的日期和时间', 'warning'); return; }
-
+                const period = document.querySelector('input[name="modalMealPeriod"]:checked').value;
+                const time = period === 'lunch' ? '12:00' : '18:00';
+                if (!date) { showToast('请选择日期', 'warning'); return; }
                 const portions = parseInt(document.getElementById('modalRegPortions').value) || 1;
-                if (portions < 1) { showToast('份数至少为 1', 'warning'); return; }
-
+                if (portions < 1) { showToast('份数至少为1', 'warning'); return; }
                 let mealStandard = 15;
                 const stdRadio = document.querySelector('input[name="modalMealStd"]:checked');
                 if (stdRadio && stdRadio.value === 'other') {
                     const val = parseFloat(document.getElementById('modalStdOtherInput').value);
-                    if (isNaN(val) || val <= 0) { showToast('请输入有效的餐标金额', 'warning'); return; }
+                    if (isNaN(val) || val <= 0) { showToast('请输入有效餐标', 'warning'); return; }
                     mealStandard = val;
                 }
-
                 let settlementDept = user.department;
                 const settleRadio = document.querySelector('input[name="modalSettleDept"]:checked');
                 if (settleRadio && settleRadio.value === 'other') {
                     const val = document.getElementById('modalSettleOtherInput').value.trim();
-                    if (!val) { showToast('请输入结算部门代码', 'warning'); return; }
+                    if (!val) { showToast('请输入结算部门', 'warning'); return; }
                     settlementDept = val;
                 }
-
                 const remark = document.getElementById('modalRegRemark').value.trim() || '';
-
                 const dateTimeStr = `${date} ${time}`;
                 const recordData = {
                     user_id: user.id,
@@ -1490,26 +1334,18 @@
                     settlement_department: settlementDept,
                     remark: remark,
                 };
-
                 if (editId) {
-                    // 更新
                     await updateRecord(editId, recordData);
-                    showToast(`✅ 已更新 ${user.name} 的用餐记录`, 'success');
+                    showToast(`✅ 已更新 ${user.name} 的记录`, 'success');
                 } else {
-                    // 新增
-                    const newRecord = {
-                        id: 'r_' + genId(),
-                        ...recordData,
-                        created_at: getNowISO(),
-                    };
+                    const newRecord = { id: 'r_' + genId(), ...recordData, created_at: getNowISO() };
                     await addRecord(newRecord);
-                    showToast(`✅ 已添加 ${user.name} 的用餐记录`, 'success');
+                    showToast(`✅ 已添加 ${user.name} 的记录`, 'success');
                 }
-
                 closeModal('modalAddRecord');
                 renderSummary();
             } catch (err) {
-                showToast('操作失败，请重试', 'error');
+                showToast('操作失败', 'error');
                 console.error(err);
             } finally {
                 submitBtn.disabled = false;
@@ -1517,20 +1353,15 @@
             }
         });
 
-        document.getElementById('btnAddRecord').addEventListener('click', () => {
-            openRecordModal(null, null);
-        });
+        document.getElementById('btnAddRecord').addEventListener('click', () => openRecordModal(null, null));
 
-        // 筛选事件
         document.getElementById('filterStart').addEventListener('input', debounceFilter);
         document.getElementById('filterEnd').addEventListener('input', debounceFilter);
         document.getElementById('filterUser').addEventListener('input', debounceFilter);
-
         document.getElementById('btnFilter').addEventListener('click', () => {
             if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
             applyFilters();
         });
-
         document.getElementById('btnClearFilter').addEventListener('click', () => {
             document.getElementById('filterStart').value = '';
             document.getElementById('filterEnd').value = '';
@@ -1538,14 +1369,11 @@
             if (filterDebounceTimer) clearTimeout(filterDebounceTimer);
             applyFilters();
         });
-
-        // 刷新数据
         document.getElementById('btnRefreshData').addEventListener('click', async () => {
             await loadAllData();
             renderSummary();
             showToast('✅ 数据已刷新', 'success');
         });
-
         document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
             if (!deleteTargetId) return;
             try {
@@ -1554,81 +1382,47 @@
                 closeModal('modalConfirmDelete');
                 renderSummary();
                 showToast('🗑️ 记录已删除', 'success');
-            } catch (err) {
-                showToast('删除失败，请重试', 'error');
-                console.error(err);
-            }
+            } catch (err) { showToast('删除失败', 'error'); console.error(err); }
         });
 
         // ================================================================
-        // 导出 CSV
+        // 导出 Excel（替代 CSV）
         // ================================================================
-
-        function exportRecordsToCSV(records, filename = '用餐记录') {
+        function exportRecordsToExcel(records, filename) {
             if (!records || records.length === 0) {
                 showToast('没有记录可导出', 'warning');
                 return;
             }
-
-            const headers = ['序号', '登记人', '部门', '日期时间', '份数', '餐标(元)', '结算部门', '备注'];
-            const rows = records.map((r, idx) => [
-                idx + 1,
-                r.register_name || '',
-                r.department || '',
-                r.date_time || '',
-                r.portions || 1,
-                r.meal_standard || 15,
-                r.settlement_department || r.department || '',
-                r.remark || ''
-            ]);
-
-            const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-            ].join('\n');
-
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = `${filename}_${getTodayStr()}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showToast(`📥 已导出 ${records.length} 条记录 (CSV)`, 'success');
+            const data = records.map((r, idx) => ({
+                '序号': idx + 1,
+                '登记人': r.register_name || '',
+                '部门': r.department || '',
+                '日期时间': r.date_time || '',
+                '份数': r.portions || 1,
+                '餐标(元)': r.meal_standard || 15,
+                '结算部门': r.settlement_department || r.department || '',
+                '时段': getMealTag(r.time).label,
+                '备注': r.remark || ''
+            }));
+            try {
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(data);
+                XLSX.utils.book_append_sheet(wb, ws, '用餐记录');
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${filename}_${getTodayStr()}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                showToast(`📊 已导出 ${records.length} 条记录 (Excel)`, 'success');
+            } catch (e) {
+                showToast('导出 Excel 失败', 'error');
+                console.error(e);
+            }
         }
-
-        document.getElementById('btnExport').addEventListener('click', () => {
-            const start = document.getElementById('filterStart').value;
-            const end = document.getElementById('filterEnd').value;
-            const userFilter = document.getElementById('filterUser').value.trim();
-            let records = [...(window._currentRecords || [])];
-            if (start) records = records.filter(r => r.date >= start);
-            if (end) records = records.filter(r => r.date <= end);
-            if (userFilter) records = records.filter(r => r.register_name && r.register_name.includes(userFilter));
-            if (records.length === 0) {
-                showToast('当前筛选条件下没有记录', 'warning');
-                return;
-            }
-            exportRecordsToCSV(records, '用餐记录_筛选');
-        });
-
-        document.getElementById('btnExportToday').addEventListener('click', () => {
-            const today = getTodayStr();
-            const records = cachedRecords.filter(r => r.date === today);
-            if (records.length === 0) {
-                showToast('今日暂无用餐记录', 'warning');
-                return;
-            }
-            exportRecordsToCSV(records, '今日用餐记录');
-            markExportedToday();
-            updateAutoExportStatus();
-        });
-
-        // ================================================================
-        // 导出 Excel
-        // ================================================================
 
         document.getElementById('btnExportExcel').addEventListener('click', () => {
             const start = document.getElementById('filterStart').value;
@@ -1638,47 +1432,96 @@
             if (start) records = records.filter(r => r.date >= start);
             if (end) records = records.filter(r => r.date <= end);
             if (userFilter) records = records.filter(r => r.register_name && r.register_name.includes(userFilter));
+            if (records.length === 0) { showToast('当前筛选条件下没有记录', 'warning'); return; }
+            exportRecordsToExcel(records, '用餐记录_筛选');
+        });
 
+        document.getElementById('btnExportToday').addEventListener('click', () => {
+            const today = getTodayStr();
+            const records = cachedRecords.filter(r => r.date === today);
+            if (records.length === 0) { showToast('今日暂无用餐记录', 'warning'); return; }
+            exportRecordsToExcel(records, '今日用餐记录');
+            markExportedToday();
+            updateAutoExportStatus();
+        });
+
+        // ================================================================
+        // 部门统计
+        // ================================================================
+        document.getElementById('btnDeptStats').addEventListener('click', () => {
+            const records = cachedRecords || [];
             if (records.length === 0) {
-                showToast('当前筛选条件下没有记录', 'warning');
+                document.getElementById('deptStatsContent').innerHTML = '<p style="color:var(--gray-500);">暂无记录，无法统计</p>';
+                openModal('modalDeptStats');
                 return;
             }
-
-            try {
-                const data = records.map((r, idx) => ({
-                    '序号': idx + 1,
-                    '登记人': r.register_name || '',
-                    '部门': r.department || '',
-                    '日期时间': r.date_time || '',
-                    '份数': r.portions || 1,
-                    '餐标(元)': r.meal_standard || 15,
-                    '结算部门': r.settlement_department || r.department || '',
-                    '备注': r.remark || ''
-                }));
-
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, '用餐记录');
-                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                const blob = new Blob([wbout], { type: 'application/octet-stream' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `用餐记录_${getTodayStr()}.xlsx`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-                showToast(`📊 已导出 ${records.length} 条记录 (Excel)`, 'success');
-            } catch (e) {
-                showToast('导出 Excel 失败，请检查网络或刷新后重试', 'error');
-                console.error(e);
-            }
+            const deptMap = {};
+            records.forEach(r => {
+                const dept = r.settlement_department || r.department || '未指定';
+                if (!deptMap[dept]) deptMap[dept] = { count: 0, portions: 0, amount: 0 };
+                deptMap[dept].count += 1;
+                deptMap[dept].portions += (r.portions || 1);
+                deptMap[dept].amount += (r.portions || 1) * (r.meal_standard || 15);
+            });
+            const sorted = Object.keys(deptMap).sort((a, b) => deptMap[b].portions - deptMap[a].portions);
+            let html = `<table class="dept-stats-table"><thead><tr><th>部门</th><th>记录数</th><th>总份数</th><th>总金额（元）</th></tr></thead><tbody>`;
+            let totalCount = 0, totalPortions = 0, totalAmount = 0;
+            sorted.forEach(dept => {
+                const info = deptMap[dept];
+                totalCount += info.count;
+                totalPortions += info.portions;
+                totalAmount += info.amount;
+                html += `<tr><td>${dept}</td><td>${info.count}</td><td>${info.portions}</td><td>${info.amount.toFixed(2)}</td></tr>`;
+            });
+            html += `<tr class="total-row"><td><strong>合计</strong></td><td>${totalCount}</td><td>${totalPortions}</td><td>${totalAmount.toFixed(2)}</td></tr></tbody></table>`;
+            document.getElementById('deptStatsContent').innerHTML = html;
+            openModal('modalDeptStats');
         });
+
+        // ================================================================
+        // 生成固定记录
+        // ================================================================
+        document.getElementById('btnGenerateFixed').addEventListener('click', generateFixedRecords);
+        async function generateFixedRecords() {
+            if (FIXED_RECORDS.length === 0) {
+                showToast('当前没有配置固定记录，请在代码中修改 FIXED_RECORDS 数组', 'warning');
+                return;
+            }
+            const today = getTodayStr();
+            let generated = 0, skipped = 0;
+            for (const item of FIXED_RECORDS) {
+                const targetDate = item.date || today;
+                const exists = cachedRecords.some(r => r.register_name === item.name && r.date === targetDate);
+                if (exists) { skipped++; continue; }
+                const user = findUserByName(item.name);
+                if (!user) { skipped++; continue; }
+                const record = {
+                    id: 'r_' + genId(),
+                    user_id: user.id,
+                    register_name: user.name,
+                    department: user.department,
+                    date_time: `${targetDate} 12:00`,
+                    date: targetDate,
+                    time: '12:00',
+                    portions: item.portions || 1,
+                    meal_standard: 15,
+                    settlement_department: user.department,
+                    remark: '固定自动生成',
+                    created_at: getNowISO(),
+                };
+                try {
+                    await addRecord(record);
+                    generated++;
+                } catch (err) { console.error('生成固定记录失败:', err); }
+            }
+            await loadAllData();
+            renderSummary();
+            showToast(`✅ 成功生成 ${generated} 条固定记录，跳过 ${skipped} 条`, 'success');
+        }
 
         // ================================================================
         // 管理用户
         // ================================================================
-
         document.getElementById('btnManageUsers').addEventListener('click', () => {
             renderUserList();
             openModal('modalManageUsers');
@@ -1687,76 +1530,48 @@
             document.getElementById('userPhoneInput').value = '';
             document.getElementById('batchUserInput').value = '';
         });
-
         function renderUserList() {
             const users = cachedUsers || [];
             const container = document.getElementById('userListContainer');
             if (!users.length) {
-                container.innerHTML = `<div class="empty-state" style="padding:20px;"><p>暂无用户，请添加或导入</p></div>`;
+                container.innerHTML = `<div class="empty-state" style="padding:20px;"><p>暂无用户</p></div>`;
                 document.getElementById('userCount').textContent = '0';
                 return;
             }
             let html = '';
             users.forEach(u => {
-                html += `
-                    <div class="user-list-item">
-                        <div class="info">
-                            <span class="name">${u.name}</span>
-                            <span class="dept">${u.department}</span>
-                            <span class="phone">${u.phone || '-'}</span>
-                        </div>
-                        <button class="btn btn-danger btn-sm" data-user-id="${u.id}">删除</button>
-                    </div>
-                `;
+                html += `<div class="user-list-item"><div class="info"><span class="name">${u.name}</span><span class="dept">${u.department}</span><span class="phone">${u.phone || '-'}</span></div><button class="btn btn-danger btn-sm" data-user-id="${u.id}">删除</button></div>`;
             });
             container.innerHTML = html;
             document.getElementById('userCount').textContent = users.length;
-
             container.querySelectorAll('[data-user-id]').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const id = btn.dataset.userId;
                     const user = findUserById(id);
                     if (!user) return;
                     const records = cachedRecords.filter(r => r.user_id === id);
-                    let msg = `确定要删除用户“${user.name}”吗？`;
-                    if (records.length > 0) {
-                        msg += `\n该用户有 ${records.length} 条历史用餐记录，删除用户后这些记录仍会保留（仅删除用户身份）。`;
-                    }
+                    let msg = `确定删除用户“${user.name}”吗？`;
+                    if (records.length > 0) msg += `\n该用户有 ${records.length} 条历史记录，删除后记录仍保留（仅删除用户身份）。`;
                     if (confirm(msg)) {
                         try {
                             await deleteUser(id);
                             renderUserList();
                             updateUserDatalist();
                             showToast(`已删除用户“${user.name}”`, 'success');
-                        } catch (err) {
-                            showToast('删除失败，请重试', 'error');
-                            console.error(err);
-                        }
+                        } catch (err) { showToast('删除失败', 'error'); console.error(err); }
                     }
                 });
             });
         }
-
         document.getElementById('btnAddUser').addEventListener('click', async () => {
             const name = document.getElementById('userNameInput').value.trim();
             const dept = document.getElementById('userDeptInput').value.trim();
             const phone = document.getElementById('userPhoneInput').value.trim();
-
             if (!name) { showToast('请输入姓名', 'warning'); return; }
             if (!dept) { showToast('请输入部门', 'warning'); return; }
-
-            if (cachedUsers.some(u => u.name === name)) {
-                showToast('该姓名已存在，请勿重复添加', 'warning');
-                return;
-            }
-
+            if (cachedUsers.some(u => u.name === name)) { showToast('该姓名已存在', 'warning'); return; }
             try {
-                const newUser = {
-                    id: 'u_' + genId(),
-                    name: name,
-                    department: dept,
-                    phone: phone || '',
-                };
+                const newUser = { id: 'u_' + genId(), name, department: dept, phone: phone || '' };
                 await addUser(newUser);
                 renderUserList();
                 updateUserDatalist();
@@ -1764,95 +1579,46 @@
                 document.getElementById('userDeptInput').value = '';
                 document.getElementById('userPhoneInput').value = '';
                 showToast(`✅ 已添加用户：${name}`, 'success');
-            } catch (err) {
-                showToast('添加失败，请重试', 'error');
-                console.error(err);
-            }
+            } catch (err) { showToast('添加失败', 'error'); console.error(err); }
         });
-
         document.getElementById('btnBatchImport').addEventListener('click', async () => {
             const text = document.getElementById('batchUserInput').value.trim();
-            if (!text) {
-                showToast('请粘贴用户数据', 'warning');
-                return;
-            }
-
+            if (!text) { showToast('请粘贴用户数据', 'warning'); return; }
             const lines = text.split('\n').filter(line => line.trim() !== '');
-            if (lines.length === 0) {
-                showToast('没有有效数据', 'warning');
-                return;
-            }
-
-            let imported = 0;
-            let skipped = 0;
+            if (lines.length === 0) { showToast('没有有效数据', 'warning'); return; }
+            let imported = 0, skipped = 0;
             const existingNames = new Set(cachedUsers.map(u => u.name));
-
             const newUsers = [];
             lines.forEach((line, index) => {
                 const parts = line.split(',').map(s => s.trim());
-                if (parts.length < 2) {
-                    skipped++;
-                    return;
-                }
-                const name = parts[0];
-                const dept = parts[1];
-                const phone = parts[2] || '';
-                if (!name || !dept) {
-                    skipped++;
-                    return;
-                }
-                if (existingNames.has(name)) {
-                    skipped++;
-                    return;
-                }
-                newUsers.push({
-                    id: 'u_' + genId() + '_' + index,
-                    name: name,
-                    department: dept,
-                    phone: phone,
-                });
+                if (parts.length < 2) { skipped++; return; }
+                const name = parts[0], dept = parts[1], phone = parts[2] || '';
+                if (!name || !dept) { skipped++; return; }
+                if (existingNames.has(name)) { skipped++; return; }
+                newUsers.push({ id: 'u_' + genId() + '_' + index, name, department: dept, phone });
                 existingNames.add(name);
                 imported++;
             });
-
-            if (imported === 0) {
-                showToast('没有新用户可导入（可能全部已存在或格式错误）', 'warning');
-                return;
-            }
-
+            if (imported === 0) { showToast('没有新用户可导入', 'warning'); return; }
             try {
-                // 逐个添加
-                for (const user of newUsers) {
-                    await addUser(user);
-                }
+                for (const user of newUsers) await addUser(user);
                 renderUserList();
                 updateUserDatalist();
                 document.getElementById('batchUserInput').value = '';
                 showToast(`✅ 成功导入 ${imported} 位用户，跳过 ${skipped} 条`, 'success');
-            } catch (err) {
-                showToast('导入失败，请重试', 'error');
-                console.error(err);
-            }
+            } catch (err) { showToast('导入失败', 'error'); console.error(err); }
         });
-
         document.getElementById('btnBatchDeleteAll').addEventListener('click', async () => {
-            if (cachedUsers.length === 0) {
-                showToast('当前没有用户可删除', 'warning');
-                return;
-            }
-            if (confirm('⚠️ 确定要删除所有用户吗？此操作不可撤销！')) {
+            if (cachedUsers.length === 0) { showToast('没有用户可删除', 'warning'); return; }
+            if (confirm('⚠️ 确定删除所有用户吗？此操作不可撤销！')) {
                 try {
                     await deleteAllUsers();
                     renderUserList();
                     updateUserDatalist();
                     showToast('已删除所有用户', 'success');
-                } catch (err) {
-                    showToast('删除失败，请重试', 'error');
-                    console.error(err);
-                }
+                } catch (err) { showToast('删除失败', 'error'); console.error(err); }
             }
         });
-
         document.getElementById('userNameInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') document.getElementById('btnAddUser').click();
         });
@@ -1861,49 +1627,40 @@
         });
 
         // ================================================================
-        // 自动导出（仅用于标记，实际导出由管理员手动触发）
+        // 自动导出（标记）
         // ================================================================
-
         let exportTimer = null;
-
         function startAutoExportTimer() {
             if (exportTimer) clearInterval(exportTimer);
             checkAndExport();
             exportTimer = setInterval(checkAndExport, 60000);
             updateAutoExportStatus();
         }
-
         function checkAndExport() {
             const now = new Date();
             const hours = now.getHours();
             const minutes = now.getMinutes();
-
             if (hours === 8 && minutes >= 50 && !isExportedToday()) {
                 const today = getTodayStr();
                 const records = cachedRecords.filter(r => r.date === today);
                 if (records.length > 0) {
-                    exportRecordsToCSV(records, '今日用餐记录_自动导出');
+                    exportRecordsToExcel(records, '今日用餐记录_自动导出');
                     showToast('📤 已自动导出今日用餐记录', 'info', 4000);
                 }
                 markExportedToday();
                 updateAutoExportStatus();
             }
         }
-
         function markExportedToday() {
-            // 使用 localStorage 保存导出标记（每个浏览器独立）
             localStorage.setItem('meal_export_today_' + getTodayStr(), 'true');
         }
-
         function isExportedToday() {
             return localStorage.getItem('meal_export_today_' + getTodayStr()) === 'true';
         }
-
         function updateAutoExportStatus() {
             const dot = document.getElementById('exportDot');
             const text = document.getElementById('exportStatusText');
             const today = getTodayStr();
-
             if (isExportedToday()) {
                 dot.className = 'dot green';
                 text.textContent = `✅ 今日已导出 (${today})`;
@@ -1922,15 +1679,22 @@
             }
         }
 
+        function updateRecordCount() {
+            const tbody = document.getElementById('recordTableBody');
+            const rows = tbody.querySelectorAll('tr:not(.empty-row)');
+            document.getElementById('recordCount').textContent = `共 ${rows.length} 条记录`;
+        }
+        function updateSelectedInfo() {
+            const info = document.getElementById('selectedInfo');
+            const count = selectedIds.size;
+            info.textContent = count === 0 ? '未选中任何记录' : `已选中 ${count} 条记录`;
+        }
+
         // ================================================================
         // 退出
         // ================================================================
-
         document.getElementById('btnSummaryBack').addEventListener('click', () => {
-            if (exportTimer) {
-                clearInterval(exportTimer);
-                exportTimer = null;
-            }
+            if (exportTimer) { clearInterval(exportTimer); exportTimer = null; }
             showPage('loginPage');
             document.getElementById('adminPasswordArea').style.display = 'none';
             document.getElementById('adminPasswordInput').value = '';
@@ -1939,30 +1703,20 @@
         // ================================================================
         // INIT
         // ================================================================
-
         async function init() {
-            // 不自动加载数据，等用户点击登录后再加载
-            // 但预先初始化默认用户列表的显示
             updateUserDatalist();
             document.getElementById('filterStart').value = '';
             document.getElementById('filterEnd').value = '';
             document.getElementById('filterUser').value = '';
-            
-            // 预加载数据（静默）
             try {
                 await loadAllData();
-            } catch (e) {
-                // 静默失败
-            }
+            } catch (e) { /* 静默失败 */ }
         }
-
         init();
-
-        console.log('🍱 用餐登记系统 (云端同步版)');
-        console.log('☁️ Supabase URL:', SUPABASE_URL);
-        console.log('📌 默认管理员密码: admin210');
-        console.log('👥 共 ' + DEFAULT_USERS.length + ' 位默认用户');
-        console.log('✨ 所有数据实时同步至云端');
+        console.log('🍱 用餐登记系统 (云端同步版) 已加载');
+        console.log('📌 管理员密码: admin210');
+        console.log(`👥 共 ${DEFAULT_USERS.length} 位默认用户`);
+        console.log('✨ 所有功能已完善（午餐/晚餐、部门统计、固定记录、Excel导出等）');
     </script>
 </body>
 </html>
