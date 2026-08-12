@@ -940,7 +940,9 @@
         function setDefaultDateTime() {
             const now = new Date();
             document.getElementById('regDate').value = formatDate(now);
-            document.getElementById('regTime').value = '12:00';
+            // 移除对regTime的操作，因为已改为时段选择
+            // 同时确保午餐单选按钮被选中
+            document.getElementById('periodLunch').checked = true;
         }
         // 时段切换
         document.querySelectorAll('input[name="mealPeriod"]').forEach(el => {
